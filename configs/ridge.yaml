@@ -1,0 +1,8 @@
+name: ridge_baseline
+model: Ridge
+preprocessing:
+  imputer: median
+  remove_constant_features: true
+  scaler: standard
+target_transform: log1p_candidate
+

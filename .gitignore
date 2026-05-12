@@ -1,0 +1,27 @@
+.DS_Store
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.pytest_cache/
+.venv/
+venv/
+env/
+
+# Local data files may be provided by the competition platform.
+train.csv
+test.csv
+sample_submission.csv
+data/raw/*.csv
+
+# Keep generated outputs local unless explicitly selected for release.
+outputs/oof/*.csv
+outputs/oof/*.npy
+outputs/submissions/*.csv
+outputs/reports/*.csv
+outputs/reports/*.json
+
+# Model artifacts
+models/
+*.pkl
+*.joblib
+*.cbm
