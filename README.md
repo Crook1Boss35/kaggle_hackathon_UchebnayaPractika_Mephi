@@ -1,79 +1,87 @@
 # Influenza Molecule Activity Prediction
 
-This repository contains a reproducible baseline for predicting three biological activity targets for molecular compounds:
+Решение соревнования по предсказанию трех показателей активности молекул:
 
-- `IC50`: concentration that suppresses 50% of viral activity
-- `CC50`: concentration toxic for 50% of cells
-- `SI`: selectivity index
+- `IC50` - подавление вирусной активности;
+- `CC50` - токсичность для клеток;
+- `SI` - индекс селективности.
 
-The input data contains numeric molecular descriptors generated from chemical structures.
+Метрика соревнования:
 
-## Repository Structure
+```text
+(RMSE(IC50) + RMSE(CC50) + RMSE(SI)) / 3
+```
+
+## Что Открывать
+
+Основной ноутбук решения:
+
+```text
+01_final_solution_rf_direct_si.ipynb
+```
+
+В нем есть:
+
+- краткий EDA и обработка данных;
+- линейный baseline;
+- прямое предсказание `SI` без вычисления через `CC50 / IC50`;
+- финальная Random Forest ветка для `IC50` и `CC50`;
+- генерация submission;
+- краткое описание проверенных и отброшенных направлений.
+
+Дополнительный ноутбук:
+
+```text
+02_boosting_experiment.ipynb
+```
+
+Это эксперимент коллеги с boosting-моделями, оставленный для истории сравнения классов моделей. Финальное решение находится в первом ноутбуке.
+
+## Файлы
 
 ```text
 .
-├── configs/                 # Model and experiment configs
-├── data/                    # Local competition data location
-├── notebooks/               # EDA and experiment notebooks
-├── outputs/                 # Generated OOF predictions, reports and submissions
-├── scripts/                 # CLI entrypoints
-├── src/                     # Reusable training code
-└── presentation/            # Final project slides
+├── README.md
+├── 01_final_solution_rf_direct_si.ipynb
+├── 02_boosting_experiment.ipynb
+└── final_submition.csv
 ```
 
-## Data
+`final_submition.csv` - единственный итоговый файл, создаваемый полным запуском основного ноутбука. Зафиксированная конфигурация модели проверена на Kaggle: public score **`267.64645`**.
 
-Place the competition files in the project root or in `data/raw/`:
+## Данные
 
-- `train.csv`
-- `test.csv`
-- `sample_submission.csv`
+Файлы `train.csv`, `test.csv` и `sample_submission.csv` не включены в public Git-репозиторий, поскольку по условиям хакатона это закрытые данные лаборатории.
 
-Current local files:
+Участники, имеющие доступ к соревнованию, могут получить данные из [папки, предоставленной организаторами](https://drive.google.com/drive/folders/1m1PS44rF9HqIAOUZQeopU5sqwgi6YfO8?usp=sharing). Для воспроизведения результата поместите три CSV-файла в одну папку с основным ноутбуком.
 
-- `train.csv`: 751 rows, 210 feature columns, 3 targets
-- `test.csv`: 250 rows, 210 feature columns
-- `sample_submission.csv`: expected submission format
+## Подход
 
-## Approach
+Финальная модель разделяет targets по характеру задачи:
 
-Day 1 baseline:
+- `SI` предсказывается напрямую робастной `GradientBoostingRegressor(loss="huber")` моделью; отношение `CC50 / IC50` не используется;
+- `IC50` и `CC50` предсказываются совместной `RandomForestRegressor` моделью после отбора `65` важных molecular descriptors;
+- промежуточная устойчивая ветка `RF800` дала `269.16`;
+- в рамках одной проверки чувствительности Random Forest к `random_state` была зафиксирована конфигурация `RF300`, давшая воспроизводимый submission со score `267.64645`; дальнейший перебор seeds не проводился.
 
-1. Load train/test data.
-2. Split features and targets.
-3. Remove constant features.
-4. Impute missing numeric values with median.
-5. Train a simple multi-target baseline using fixed cross-validation.
-6. Generate a valid submission file.
+В ходе экспериментов были проверены линейные модели, tree-based/boosting классы, raw и `log1p` targets, несколько вариантов feature filtering, direct-модели для `SI`, per-target replacements, blends и идеи для моделирования тяжелых хвостов. Подробная карта экспериментов и причины отказа от веток находятся в основном ноутбуке.
 
-The baseline intentionally stays simple so all later model experiments can reuse the same validation, preprocessing and submission format.
+## Как Запустить
 
-## Reproduction
+1. Откройте `01_final_solution_rf_direct_si.ipynb` в Colab или Jupyter.
+2. Скачайте выданные организаторами `train.csv`, `test.csv` и `sample_submission.csv` и положите их рядом с ноутбуком либо загрузите в `/content` в Colab.
+3. Выполните все ячейки сверху вниз.
+4. Ноутбук пересоздаст итоговый файл `final_submition.csv`.
 
-Install dependencies:
+Зависимости для локального запуска:
 
 ```bash
-pip install -r requirements.txt
+pip install pandas numpy matplotlib scikit-learn jupyter
 ```
 
-Run the quick baseline:
+## Воспроизводимость
 
-```bash
-python scripts/train_baseline.py
-```
-
-The script writes:
-
-- `outputs/reports/baseline_report.csv`
-- `outputs/oof/baseline_oof.csv`
-- `outputs/submissions/baseline_submission.csv`
-
-## Next Experiments
-
-Recommended next steps:
-
-- compare raw targets vs `log1p` targets;
-- train separate models for `IC50`, `CC50`, and `SI`;
-- test `Ridge`, `ElasticNet`, `ExtraTrees`, `RandomForest`, `HistGradientBoosting`, `CatBoost`, `LightGBM`, and `XGBoost`;
-- blend the best OOF/test predictions.
-
+- В финальном notebook зафиксированы random seeds и полностью реализован preprocessing/training pipeline.
+- `final_submition.csv` полностью генерируется кодом при повторном запуске.
+- Зафиксированная финальная конфигурация проверена на Kaggle: public score `267.64645`.
+- Закрытые исходные CSV не публикуются в репозитории; это исключает несанкционированное распространение лабораторных данных.

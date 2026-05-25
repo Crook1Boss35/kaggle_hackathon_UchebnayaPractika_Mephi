@@ -7,21 +7,15 @@ __pycache__/
 venv/
 env/
 
-# Local data files may be provided by the competition platform.
-train.csv
-test.csv
-sample_submission.csv
-data/raw/*.csv
-
-# Keep generated outputs local unless explicitly selected for release.
-outputs/oof/*.csv
-outputs/oof/*.npy
-outputs/submissions/*.csv
-outputs/reports/*.csv
-outputs/reports/*.json
-
-# Model artifacts
-models/
+# Model/cache artifacts.
+catboost_info/
+.tabpfn_cache/
+*.ckpt
 *.pkl
 *.joblib
 *.cbm
+
+# Competition data is supplied separately and is not published in this repository.
+# Keep only the final prediction file under version control.
+*.csv
+!final_submition.csv

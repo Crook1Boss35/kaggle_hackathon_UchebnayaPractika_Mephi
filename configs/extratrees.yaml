@@ -1,7 +1,0 @@
-name: extratrees_candidate
-model: ExtraTreesRegressor
-preprocessing:
-  imputer: median
-  remove_constant_features: true
-target_transform: raw_or_log1p
-
